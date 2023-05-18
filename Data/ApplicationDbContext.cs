@@ -11,6 +11,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<Series> Series {get;set;}
     public DbSet<Episode> Episodes {get;set;}
     public DbSet<EpisodeStatus> EpisodeStatus {get;set;}
+    public DbSet<SeriesTracking> SeriesTrackings {get;set;}
 
     public ApplicationDbContext(DbContextOptions options, IOptions<OperationalStoreOptions> operationalStoreOptions)
         : base(options, operationalStoreOptions)

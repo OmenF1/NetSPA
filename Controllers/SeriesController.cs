@@ -23,17 +23,21 @@ public class SeriesController : Controller
         _context = context;
     }
 
+    //  Get series being tracked for user.
     [HttpGet]
     public IEnumerable<Series> Get()
     {
-        var distinctSeries = _context.EpisodeStatus.Where(u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+        var distinctSeries = _context.SeriesTrackings
+            .Where
+            (
+                u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier)
+            )
             .Join(
                 _context.Series,
                 st => st.SeriesId,
                 series => series.Id,
                 (st, series) => series
             )
-            .Distinct()
             .AsEnumerable();
         
         return distinctSeries;
@@ -55,5 +59,72 @@ public class SeriesController : Controller
             ).Distinct().AsEnumerable();
 
         return distinctEpisodes;
+    }
+
+    //  Delete a series from being tracked.
+    [HttpPost]
+    public void RemoveSeries(int seriesId)
+    {
+        if (_context.EpisodeStatus
+            .Any
+            (
+                u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier) &&
+                u.SeriesId == seriesId
+            )
+        )
+        {
+            _context.EpisodeStatus
+                .RemoveRange
+                (
+                    _context.EpisodeStatus
+                        .Where
+                        (
+                            u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier) &&
+                            u.SeriesId == seriesId
+                        )
+                );
+
+            var _seriesTrackingObject = _context.SeriesTrackings
+                .FirstOrDefault
+                (
+                    u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier) &&
+                    u.SeriesId == seriesId
+                );
+            if (_seriesTrackingObject != null)
+            {
+                _context.SeriesTrackings.Remove(_seriesTrackingObject);
+            }
+            _context.SaveChanges();
+        }
+    }
+
+    //  Update a specific episode.
+    //  Note to self, I've just been reading through the API documentation for the metadata we
+    //  will be using, I think I can drop seriesId off the episode tracking table.
+    [HttpPost]
+    public void UpdateEpisode(int episodeId, int seriesId)
+    {
+        var episode = _context.EpisodeStatus
+            .FirstOrDefault
+            (
+                u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier) &&
+                u.EpisodeId == episodeId
+            );
+
+        if (episode == null)
+        {
+            episode = new EpisodeStatus() {
+                EpisodeId = episodeId,
+                SeriesId = seriesId,
+                UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            };
+            _context.EpisodeStatus.Add(episode);
+        }
+        else
+        {
+            _context.EpisodeStatus.Remove(episode);
+        }
+
+        _context.SaveChanges();
     }
 }
