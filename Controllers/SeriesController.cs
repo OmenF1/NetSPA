@@ -8,11 +8,11 @@ using System.Security.Claims;
 
 namespace NetSPA.Controllers;
 
-[Authorize]
-[ApiController]
-[Route("[controller]")]
 
-public class SeriesController : Controller
+[Controller]
+[Route("api/[controller]")]
+
+public class SeriesController : ControllerBase
 {
     private ILogger<SeriesController> _logger;
     private ApplicationDbContext _context;
@@ -126,5 +126,13 @@ public class SeriesController : Controller
         }
 
         _context.SaveChanges();
+    }
+
+
+    [HttpGet]
+    [Route("SearchSeries/{series}")]
+    public IActionResult SearchSeries(string series)
+    {
+        return new JsonResult(series);
     }
 }
