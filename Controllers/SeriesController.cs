@@ -4,7 +4,7 @@ using NetSPA.Data;
 using NetSPA.Models;
 using System.Linq;
 using System.Security.Claims;
-
+using NetSPA.Repositories;
 
 namespace NetSPA.Controllers;
 
@@ -16,11 +16,13 @@ public class SeriesController : ControllerBase
 {
     private ILogger<SeriesController> _logger;
     private ApplicationDbContext _context;
+    private TrackerRepository _trackerRepo;
     
     public SeriesController(ILogger<SeriesController> logger, ApplicationDbContext context)
     {
         _logger = logger;
         _context = context;
+        this._trackerRepo = new TrackerRepository();
     }
 
     //  Get series being tracked for user.
@@ -131,8 +133,21 @@ public class SeriesController : ControllerBase
 
     [HttpGet]
     [Route("SearchSeries/{series}")]
-    public IActionResult SearchSeries(string series)
+    public async Task<IActionResult> SearchSeries(string series)
     {
-        return new JsonResult(series);
+        List<Series> _seriesList = new List<Series>();
+        await foreach (TmdbSeries _series in _trackerRepo.SearchSeries(series))
+        {
+            //  This I'm planning to map to a DTO, but doing it like this for now so I can test,
+            //  battery is about to die with loadshedding.
+            _seriesList.Add(new Series
+            {   Id = _series.Id, 
+                Title = _series.Name,
+                Description = _series.Overview,
+                BannerUrl = _series.PosterPath
+            });
+        }
+
+        return new JsonResult(_seriesList);
     }
 }
