@@ -18,11 +18,13 @@ public class SeriesController : ControllerBase
     private ApplicationDbContext _context;
     private TrackerRepository _trackerRepo;
     
-    public SeriesController(ILogger<SeriesController> logger, ApplicationDbContext context)
+    private IConfiguration _config;
+    public SeriesController(ILogger<SeriesController> logger, ApplicationDbContext context, IConfiguration config)
     {
         _logger = logger;
         _context = context;
-        _trackerRepo = new TrackerRepository(context);
+        _trackerRepo = new TrackerRepository(context, config);
+        _config = config;
     }
 
     //  Get series being tracked for user.
