@@ -16,6 +16,7 @@ public class TmdbSeries
     public string Overview { get; set; }
     [JsonIgnore]
     public double Popularity { get; set; }
+    [JsonProperty("poster_path")]
     public string PosterPath { get; set; }
     [JsonIgnore]
     public DateTime FirstAirDate { get; set; }
