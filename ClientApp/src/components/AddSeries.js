@@ -1,4 +1,4 @@
-import React, { Component, useState} from 'react';
+import React, { Component} from 'react';
 import authService from './api-authorization/AuthorizeService';
 
 export class AddSeries extends Component {
