@@ -26,6 +26,7 @@ public class SeriesController : ControllerBase
 
     //  Get series being tracked for user.
     [HttpGet]
+    [Route("Get")]
     public IEnumerable<Series> Get()
     {
         var distinctSeries = _context.SeriesTrackings
@@ -39,8 +40,7 @@ public class SeriesController : ControllerBase
                 series => series.Id,
                 (st, series) => series
             )
-            .AsEnumerable();
-        
+            .AsEnumerable().Distinct();
         return distinctSeries;
     }
 
@@ -63,9 +63,11 @@ public class SeriesController : ControllerBase
     }
 
     //  Delete a series from being tracked.
-    [HttpPost]
-    public void RemoveSeries(int seriesId)
+    [HttpGet]
+    [Route("RemoveSeries/{seriesId}")]
+    public bool RemoveSeries(int seriesId)
     {
+        Console.WriteLine(seriesId);
         if (_context.EpisodeStatus
             .Any
             (
@@ -84,19 +86,20 @@ public class SeriesController : ControllerBase
                             u.SeriesId == seriesId
                         )
                 );
-
-            var _seriesTrackingObject = _context.SeriesTrackings
+        }
+        var _seriesTrackingObject = _context.SeriesTrackings
                 .FirstOrDefault
                 (
                     u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier) &&
                     u.SeriesId == seriesId
                 );
-            if (_seriesTrackingObject != null)
-            {
-                _context.SeriesTrackings.Remove(_seriesTrackingObject);
-            }
-            _context.SaveChanges();
+        Console.WriteLine(seriesId);
+        if (_seriesTrackingObject != null)
+        {
+            _context.SeriesTrackings.Remove(_seriesTrackingObject);
         }
+        _context.SaveChanges();
+        return true;
     }
 
     //  Update a specific episode.
@@ -167,6 +170,8 @@ public class SeriesController : ControllerBase
 
         var series = _context.Series.FirstOrDefault(s => s.Id == id);
         //  Only pull the meta data if we don't already have it.
+        //  I should add a property to series though so I can check if there are new
+        //  episodes coming though.
         if (series == null)
         {
             //  I need to handle not founds here.
