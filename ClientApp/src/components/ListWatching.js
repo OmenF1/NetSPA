@@ -1,4 +1,4 @@
-import React, { Component, useState} from 'react';
+import React, { Component} from 'react';
 import authService from './api-authorization/AuthorizeService';
 
 
@@ -18,9 +18,8 @@ export class ListWatching extends Component {
         const response = await fetch('api/series/RemoveSeries/' + series, {
             headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
         });
-        const data = await response.json();
         this.fetchUserShows();
-
+        console.log(response.json);
     }
 
     async fetchUserShows() {
@@ -46,6 +45,8 @@ export class ListWatching extends Component {
                                 <div className='card-body'>
                                     <h4 className='card-title'>{show.title}</h4>
                                     <p className='card-text'>{show.description}</p>
+                                    <hr />
+                                    <h5>Season {show.currentSeason} Episode {show.currentEpisode}</h5>
                                     <button type='button' className='btn btn-primary'>
                                         Next
                                     </button>

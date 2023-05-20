@@ -1,5 +1,5 @@
 import ApiAuthorzationRoutes from './components/api-authorization/ApiAuthorizationRoutes';
-import { AddSeries, Counter } from "./components/AddSeries";
+import { AddSeries} from "./components/AddSeries";
 import { Home } from "./components/Home";
 
 const AppRoutes = [
