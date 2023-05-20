@@ -7,4 +7,6 @@ public class SeriesTracking {
     public int Id {get;set;}
     public int SeriesId {get;set;}
     public string UserId {get;set;}
+    public int CurrentSeason {get;set;}
+    public int CurrentEpisode {get;set;}
 }

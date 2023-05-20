@@ -9,5 +9,4 @@ public class Episode
     public string? Title {get;set;}
     
     public Series Series {get;set;}
-    public ICollection<EpisodeStatus> EpisodeStatuses {get;set;}
 }
