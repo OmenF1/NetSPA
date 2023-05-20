@@ -16,4 +16,5 @@ Unfortunately I did run out of time in the end and this is the final result I wa
  - When no results are returned from the TMDB API it should notify that no items were found.
  - The home screen where a user may manage their watch items, I wanted to implement a Netflix style Season / Episode picker to jump around where you may be.
  - Styling - Overall I'm not happy with the styling, I unfortunately just ran out of time and also was a bit hazy on how I was wanting things to look as a whole.
+ - I wanted to move all the actual DB interaction items out into their own repository, overall I neglected the repositories quite a bit while I was figuring out React. Not Great.
 
