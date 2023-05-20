@@ -8,10 +8,9 @@ using NetSPA.Repositories;
 
 namespace NetSPA.Controllers;
 
-
-[Controller]
+[Authorize]
+[ApiController]
 [Route("api/[controller]")]
-
 public class SeriesController : ControllerBase
 {
     private ILogger<SeriesController> _logger;
@@ -22,7 +21,7 @@ public class SeriesController : ControllerBase
     {
         _logger = logger;
         _context = context;
-        this._trackerRepo = new TrackerRepository();
+        _trackerRepo = new TrackerRepository(context);
     }
 
     //  Get series being tracked for user.
@@ -144,10 +143,42 @@ public class SeriesController : ControllerBase
             {   Id = _series.Id, 
                 Title = _series.Name,
                 Description = _series.Overview,
-                BannerUrl = _series.PosterPath
+                BannerUrl = $"https://image.tmdb.org/t/p/original/{_series.PosterPath}"
             });
         }
 
         return new JsonResult(_seriesList);
+    }
+
+    [HttpGet]
+    [Route("Watch/{id}")]
+    public async Task<IActionResult> Watch(int id)
+    {
+        var seriesTracking = _context.SeriesTrackings
+            .FirstOrDefault(
+                s => s.SeriesId == id &&
+                s.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier)
+        );
+        
+        if (seriesTracking != null)
+        {
+            return new JsonResult(StatusCodes.Status200OK);
+        }
+
+        var series = _context.Series.FirstOrDefault(s => s.Id == id);
+        //  Only pull the meta data if we don't already have it.
+        if (series == null)
+        {
+            //  I need to handle not founds here.
+            await _trackerRepo.PullSeriesMeta(id, User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
+        // This needs to move into a repository.
+        _context.SeriesTrackings.Add(new SeriesTracking(){
+            UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+            SeriesId = id,
+        });
+        _context.SaveChanges();
+        return new JsonResult("");
     }
 }
