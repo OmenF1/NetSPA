@@ -21,15 +21,23 @@ export class AddSeries extends Component {
         this.GetSeries(this.inputValue);
     }
 
-    async onWatch(series)
-    {
+    async onWatch(seriesId) {
         const token = await authService.getAccessToken();
-        const response = await fetch('api/series/Watch/' + series, {
-            headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
+        const url = `api/series/Watch/${seriesId}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: !token ? {} : {'Authorization': `Bearer ${token}`}
         });
-        const data = await response.json();
-        console.log(data);
+        if (response.ok) {
+            // I need to change this alert to an update of the button.
+            alert("Added to watch list");
+            console.log('Request succeeded');
+        } 
+        else{
+            console.log('Request failed:', response.status);
+        }
     }
+      
 
     async GetSeries(series)
     {

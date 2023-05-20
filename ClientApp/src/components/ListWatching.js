@@ -7,6 +7,7 @@ export class ListWatching extends Component {
         super(props);
         this.state = { userShows: [], loading: true};
         this.deleteShow = this.deleteShow.bind(this);
+        this.nextShow = this.nextShow.bind(this);
     }
 
     componentDidMount() {
@@ -15,11 +16,33 @@ export class ListWatching extends Component {
 
     async deleteShow(series) {
         const token = await authService.getAccessToken();
-        const response = await fetch('api/series/RemoveSeries/' + series, {
-            headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
+        const url = 'api/series/RemoveSeries/' + series;
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: !token ? {} : {'Authorization': `Bearer ${token}`}
         });
-        this.fetchUserShows();
-        console.log(response.json);
+        if (response.ok) {
+            this.fetchUserShows();
+            console.log('Deletion successful');
+        } 
+        else {
+            console.log('Deleton failed:', response.status);
+        }
+    }
+
+    async nextShow(series) {
+        const token = await authService.getAccessToken();
+        const response = await fetch('api/series/NextEpisode/' + series, {
+            method: 'POST',
+            headers: !token ? {} : {'Authorization': `Bearer ${token}`}
+        });
+        if (response.ok) {
+            this.fetchUserShows();
+            console.log('Request successful');
+        } 
+        else {
+            console.log('Request failed:', response.status);
+        }
     }
 
     async fetchUserShows() {
@@ -31,7 +54,7 @@ export class ListWatching extends Component {
         this.setState({ userShows: data, loading: false });
     }
 
-    static searchResultsCards(usershows, deleteShow)
+    static searchResultsCards(usershows, deleteShow, nextShow)
     {
         return(
             <div className='container'>
@@ -47,7 +70,7 @@ export class ListWatching extends Component {
                                     <p className='card-text'>{show.description}</p>
                                     <hr />
                                     <h5>Season {show.currentSeason} Episode {show.currentEpisode}</h5>
-                                    <button type='button' className='btn btn-primary'>
+                                    <button type='button' className='btn btn-primary' onClick={() => nextShow(show.id)}>
                                         Next
                                     </button>
                                     <button type='button' className='btn btn-danger' onClick={() => deleteShow(show.id)}>
@@ -66,7 +89,7 @@ export class ListWatching extends Component {
 
         let searchResultsView = this.state.loading
         ? <></>
-        : ListWatching.searchResultsCards(this.state.userShows, this.deleteShow);
+        : ListWatching.searchResultsCards(this.state.userShows, this.deleteShow, this.nextShow);
 
         return (
             <div>

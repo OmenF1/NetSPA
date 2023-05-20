@@ -18,11 +18,13 @@ public class SeriesController : ControllerBase
     private ApplicationDbContext _context;
     private TrackerRepository _trackerRepo;
     
-    public SeriesController(ILogger<SeriesController> logger, ApplicationDbContext context)
+    private IConfiguration _config;
+    public SeriesController(ILogger<SeriesController> logger, ApplicationDbContext context, IConfiguration config)
     {
         _logger = logger;
         _context = context;
-        _trackerRepo = new TrackerRepository(context);
+        _trackerRepo = new TrackerRepository(context, config);
+        _config = config;
     }
 
     //  Get series being tracked for user.
@@ -54,10 +56,57 @@ public class SeriesController : ControllerBase
         return distinctSeries;
     }
 
+    [HttpPost]
+    [Route("NextEpisode/{seriesId}")]
+    public bool NextEpisode(int seriesId)
+    {
+        var userCurrent = _context.SeriesTrackings
+            .FirstOrDefault(
+                u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier) &&
+                u.SeriesId == seriesId
+            );
+
+        if (userCurrent == null)
+        {
+            return false;
+        }
+
+        int maxSeasons = _context.Episodes
+            .Where (
+                s => s.SeriesId == seriesId
+            ).Select(
+                s => s.SeasonNumber
+            ).Max();
+        
+        int episodesInCurrentSeason = _context.Episodes
+            .Where(
+                s => s.SeriesId == seriesId && 
+                s.SeasonNumber == userCurrent.CurrentSeason
+            )
+            .Select(s => s.EpisodeNumber)
+            .Max();
+
+        if (episodesInCurrentSeason == userCurrent.CurrentEpisode)
+        {
+            if (maxSeasons > userCurrent.CurrentSeason)
+            {
+                userCurrent.CurrentEpisode = 1;
+                userCurrent.CurrentSeason++;
+            }
+        }
+        else
+        {
+            userCurrent.CurrentEpisode++;
+        }
+        _context.SaveChanges();
+        return true;
+    }
+
+
     //  Delete a series from being tracked.
-    [HttpGet]
+    [HttpDelete]
     [Route("RemoveSeries/{seriesId}")]
-    public bool RemoveSeries(int seriesId)
+    public IActionResult RemoveSeries(int seriesId)
     {
         var _seriesTrackingObject = _context.SeriesTrackings
                 .FirstOrDefault
@@ -68,9 +117,15 @@ public class SeriesController : ControllerBase
         if (_seriesTrackingObject != null)
         {
             _context.SeriesTrackings.Remove(_seriesTrackingObject);
+            _context.SaveChanges();
+            return StatusCode(StatusCodes.Status200OK);
         }
-        _context.SaveChanges();
-        return true;
+        else
+        {
+            return StatusCode(StatusCodes.Status404NotFound);
+        }
+        
+        
     }
 
 
@@ -94,7 +149,7 @@ public class SeriesController : ControllerBase
         return new JsonResult(_seriesList);
     }
 
-    [HttpGet]
+    [HttpPost]
     [Route("Watch/{id}")]
     public async Task<IActionResult> Watch(int id)
     {
@@ -106,7 +161,7 @@ public class SeriesController : ControllerBase
         
         if (seriesTracking != null)
         {
-            return new JsonResult(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status200OK);
         }
 
         var series = _context.Series.FirstOrDefault(s => s.Id == id);
@@ -127,6 +182,6 @@ public class SeriesController : ControllerBase
             CurrentSeason = 1
         });
         _context.SaveChanges();
-        return new JsonResult("");
+        return StatusCode(StatusCodes.Status200OK);
     }
 }

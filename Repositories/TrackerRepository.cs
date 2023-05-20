@@ -8,15 +8,19 @@ public class TrackerRepository : ITrackerRepository
 {
 
     private ApplicationDbContext _context;
-    public TrackerRepository(ApplicationDbContext context)
+    private IConfiguration _config;
+    private string k;
+    public TrackerRepository(ApplicationDbContext context, IConfiguration config)
     {
         _context = context;
+        _config = config;
+        k = _config["TmdbKey"];
     }
 
 
     public async IAsyncEnumerable<TmdbSeries> SearchSeries(string seriesName)
     {
-        string httpEndPoint = $"https://api.themoviedb.org/3/search/tv";
+        string httpEndPoint = $"https://api.themoviedb.org/3/search/tv?api_key={k}&query={seriesName.Replace(" ", "+")}";
         
         using (HttpClient httpClient = new HttpClient())
         {
@@ -40,7 +44,7 @@ public class TrackerRepository : ITrackerRepository
     public async Task<bool> PullSeriesMeta(int seriesId, string userId)
     {
         
-        string httpEndPoint = $"https://api.themoviedb.org/3/tv/{seriesId}";
+        string httpEndPoint = $"https://api.themoviedb.org/3/tv/{seriesId}?api_key={k}";
         
         using (HttpClient httpClient = new HttpClient())
         {
