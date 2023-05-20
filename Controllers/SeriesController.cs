@@ -54,6 +54,53 @@ public class SeriesController : ControllerBase
         return distinctSeries;
     }
 
+    [HttpGet]
+    [Route("NextEpisode/{seriesId}")]
+    public bool NextEpisode(int seriesId)
+    {
+        var userCurrent = _context.SeriesTrackings
+            .FirstOrDefault(
+                u => u.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier) &&
+                u.SeriesId == seriesId
+            );
+
+        if (userCurrent == null)
+        {
+            return false;
+        }
+
+        int maxSeasons = _context.Episodes
+            .Where (
+                s => s.SeriesId == seriesId
+            ).Select(
+                s => s.SeasonNumber
+            ).Max();
+        
+        int episodesInCurrentSeason = _context.Episodes
+            .Where(
+                s => s.SeriesId == seriesId && 
+                s.SeasonNumber == userCurrent.CurrentSeason
+            )
+            .Select(s => s.EpisodeNumber)
+            .Max();
+
+        if (episodesInCurrentSeason == userCurrent.CurrentEpisode)
+        {
+            if (maxSeasons > userCurrent.CurrentSeason)
+            {
+                userCurrent.CurrentEpisode = 1;
+                userCurrent.CurrentSeason++;
+            }
+        }
+        else
+        {
+            userCurrent.CurrentEpisode++;
+        }
+        _context.SaveChanges();
+        return true;
+    }
+
+
     //  Delete a series from being tracked.
     [HttpGet]
     [Route("RemoveSeries/{seriesId}")]
