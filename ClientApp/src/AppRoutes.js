@@ -10,6 +10,7 @@ const AppRoutes = [
   },
   {
     path: '/add-series',
+    requireAuth: true,
     element: <AddSeries />
   },
   {
