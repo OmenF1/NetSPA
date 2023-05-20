@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+
+namespace NetSPA.Models;
 public class TmdbSeries
 {
     [JsonIgnore]
