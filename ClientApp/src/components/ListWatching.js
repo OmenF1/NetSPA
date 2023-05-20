@@ -16,20 +16,33 @@ export class ListWatching extends Component {
 
     async deleteShow(series) {
         const token = await authService.getAccessToken();
-        const response = await fetch('api/series/RemoveSeries/' + series, {
-            headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
+        const url = 'api/series/RemoveSeries/' + series;
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: !token ? {} : {'Authorization': `Bearer ${token}`}
         });
-        this.fetchUserShows();
-        console.log(response.json);
+        if (response.ok) {
+            this.fetchUserShows();
+            console.log('Deletion successful');
+        } 
+        else {
+            console.log('Deleton failed:', response.status);
+        }
     }
 
     async nextShow(series) {
         const token = await authService.getAccessToken();
         const response = await fetch('api/series/NextEpisode/' + series, {
-            headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
+            method: 'POST',
+            headers: !token ? {} : {'Authorization': `Bearer ${token}`}
         });
-        this.fetchUserShows();
-        console.log(response.json);
+        if (response.ok) {
+            this.fetchUserShows();
+            console.log('Request successful');
+        } 
+        else {
+            console.log('Request failed:', response.status);
+        }
     }
 
     async fetchUserShows() {

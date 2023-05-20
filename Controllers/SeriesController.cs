@@ -56,7 +56,7 @@ public class SeriesController : ControllerBase
         return distinctSeries;
     }
 
-    [HttpGet]
+    [HttpPost]
     [Route("NextEpisode/{seriesId}")]
     public bool NextEpisode(int seriesId)
     {
@@ -104,9 +104,9 @@ public class SeriesController : ControllerBase
 
 
     //  Delete a series from being tracked.
-    [HttpGet]
+    [HttpDelete]
     [Route("RemoveSeries/{seriesId}")]
-    public bool RemoveSeries(int seriesId)
+    public IActionResult RemoveSeries(int seriesId)
     {
         var _seriesTrackingObject = _context.SeriesTrackings
                 .FirstOrDefault
@@ -117,9 +117,15 @@ public class SeriesController : ControllerBase
         if (_seriesTrackingObject != null)
         {
             _context.SeriesTrackings.Remove(_seriesTrackingObject);
+            _context.SaveChanges();
+            return StatusCode(StatusCodes.Status200OK);
         }
-        _context.SaveChanges();
-        return true;
+        else
+        {
+            return StatusCode(StatusCodes.Status404NotFound);
+        }
+        
+        
     }
 
 
@@ -143,7 +149,7 @@ public class SeriesController : ControllerBase
         return new JsonResult(_seriesList);
     }
 
-    [HttpGet]
+    [HttpPost]
     [Route("Watch/{id}")]
     public async Task<IActionResult> Watch(int id)
     {
@@ -155,7 +161,7 @@ public class SeriesController : ControllerBase
         
         if (seriesTracking != null)
         {
-            return new JsonResult(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status200OK);
         }
 
         var series = _context.Series.FirstOrDefault(s => s.Id == id);
@@ -176,6 +182,6 @@ public class SeriesController : ControllerBase
             CurrentSeason = 1
         });
         _context.SaveChanges();
-        return new JsonResult("");
+        return StatusCode(StatusCodes.Status200OK);
     }
 }
